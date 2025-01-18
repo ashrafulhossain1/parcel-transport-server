@@ -96,7 +96,7 @@ async function run() {
 
         // PARCEL RELATED API's
 
-        // specific user booked parcels
+        // specific user booked parcels by email
         app.get('/parcels/:email', verifyToken, async (req, res) => {
 
             const email = req.params.email;
