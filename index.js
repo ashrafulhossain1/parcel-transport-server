@@ -61,6 +61,43 @@ async function run() {
             })
         }
 
+        // verify User
+        const verifyUser = async (req, res, next) => {
+            const email = req.decoded?.email
+            // console.log('From verify User', email)
+
+            const query = { email }
+            const user = await userCollection.findOne(query)
+            if (user?.role !== 'User') {
+                return res.status(403).send({ message: 'Forbidden access! User can only see this' })
+            }
+            next()
+        }
+        // verify User
+        const verifyDeliveryMen = async (req, res, next) => {
+            const email = req.decoded?.email
+            // console.log('From verify User', email)
+
+            const query = { email }
+            const user = await userCollection.findOne(query)
+            if (user?.role !== 'DeliveryMen') {
+                return res.status(403).send({ message: 'Forbidden access! User can only see this' })
+            }
+            next()
+        }
+        // verify User
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded?.email
+            // console.log('From verify User', email)
+
+            const query = { email }
+            const user = await userCollection.findOne(query)
+            if (user?.role !== 'Admin') {
+                return res.status(403).send({ message: 'Forbidden access! User can only see this' })
+            }
+            next()
+        }
+
 
         // Users Collection related apis
         app.post('/users', async (req, res) => {
@@ -86,7 +123,6 @@ async function run() {
             res.send(result)
         })
 
-
         // get user role
         app.get('/users/role/:email', verifyToken, async (req, res) => {
             const email = req.params.email
@@ -96,17 +132,20 @@ async function run() {
 
         // PARCEL RELATED API's
 
-        // specific user for all booked parcels by (her) email
-        app.get('/parcels/:email', verifyToken, async (req, res) => {
-
+        // specific user for all booked parcels by (her) email AND status wise
+        app.get('/parcels/:email', verifyToken, verifyDeliveryMen, async (req, res) => {
             const email = req.params.email;
-            const query = { email: email }
+            const { bookingStatus } = req.query;
+
+            let query = { email }
+            if (bookingStatus) {
+                query.bookingStatus = bookingStatus;
+            }
             const result = await parcelCollection.find(query).toArray();
             res.send(result)
         })
 
-        // single parcel get for update parcel default value
-
+        // single parcel get for update parcel default value in update page
         app.get('/parcels/update/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
@@ -114,19 +153,30 @@ async function run() {
             res.send(result)
         })
 
-        // updated parcelData
-        app.patch('/parcels/update/:id', async (req, res) => {
+        // updated parcelData by patch
+        app.patch('/parcels/update/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
-            console.log('updating hitting id', id)
-            console.log('This::::', req.body)
             const query = { _id: new ObjectId(id) }
-
             const updated = {
                 $set: req.body
             }
             const result = await parcelCollection.updateOne(query, updated)
             res.send(result)
         })
+
+        // update parcel Status by =>User (cancel)
+        app.patch('/parcels/returned/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const updatedStatus = {
+                $set: {
+                    bookingStatus: 'returned'
+                }
+            }
+            const result = await parcelCollection.updateOne(query, updatedStatus)
+            res.send(result)
+        })
+
 
         // post a parcel
         app.post('/parcels', async (req, res) => {
