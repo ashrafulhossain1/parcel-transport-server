@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json())
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jkfsd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -44,14 +44,14 @@ async function run() {
 
         // verify token
         const verifyToken = (req, res, next) => {
-            console.log(req.headers?.authentication)
+            // console.log(req.headers?.authentication)
 
             if (!req.headers.authentication) {
                 return res.status(401).send({ message: 'unauthorized Access DGM-1' });
             }
 
             const token = req.headers.authentication.split(' ')[1];
-            console.log(token)
+            // console.log(token)
             jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
                 if (error) {
                     return res.status(401).send({ message: 'Invalid Token DGM-2...' })
@@ -96,7 +96,7 @@ async function run() {
 
         // PARCEL RELATED API's
 
-        // specific user booked parcels by email
+        // specific user for all booked parcels by (her) email
         app.get('/parcels/:email', verifyToken, async (req, res) => {
 
             const email = req.params.email;
@@ -105,7 +105,30 @@ async function run() {
             res.send(result)
         })
 
+        // single parcel get for update parcel default value
 
+        app.get('/parcels/update/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await parcelCollection.findOne(query)
+            res.send(result)
+        })
+
+        // updated parcelData
+        app.patch('/parcels/update/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log('updating hitting id', id)
+            console.log('This::::', req.body)
+            const query = { _id: new ObjectId(id) }
+
+            const updated = {
+                $set: req.body
+            }
+            const result = await parcelCollection.updateOne(query, updated)
+            res.send(result)
+        })
+
+        // post a parcel
         app.post('/parcels', async (req, res) => {
             const parcel = req.body;
             const parcelInfo = {
@@ -117,6 +140,9 @@ async function run() {
             const result = await parcelCollection.insertOne(parcelInfo)
             res.send(result)
         })
+
+        // patch a parcel
+
 
 
 
