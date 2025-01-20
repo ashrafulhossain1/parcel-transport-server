@@ -27,12 +27,10 @@ async function run() {
         // Connect the client to the server
         await client.connect();
 
-
-
         const userCollection = client.db('shipEaseDb').collection('users');
         const parcelCollection = client.db('shipEaseDb').collection('parcels');
 
-        //_________________________ JWT Token Create________________________________
+        //_______________________________ JWT Token Create_______________________________________________
         // create token
         app.post('/jwt', async (req, res) => {
             const userInfo = req.body
@@ -61,7 +59,7 @@ async function run() {
             })
         }
 
-        // verify User
+        //====================================== verify User ================================================
         const verifyUser = async (req, res, next) => {
             const email = req.decoded?.email
             // console.log('From verify User', email)
@@ -97,7 +95,7 @@ async function run() {
             }
             next()
         }
-
+        // ______________________________________________jwt middleware end____________________________________________________
 
         // Users Collection related apis
         app.post('/users', async (req, res) => {
@@ -124,16 +122,16 @@ async function run() {
         })
 
         // get user role
-        app.get('/users/role/:email', verifyToken, async (req, res) => {
+        app.get('/users/role/:email', async (req, res) => {
             const email = req.params.email
             const result = await userCollection.findOne({ email })
             res.send({ role: result?.role })
         })
 
-        // PARCEL RELATED API's
+        //USER PARCEL RELATED API's
 
         // specific user for all booked parcels by (her) email AND status wise
-        app.get('/parcels/:email', verifyToken, verifyDeliveryMen, async (req, res) => {
+        app.get('/parcels/:email', verifyToken, async (req, res) => {
             const email = req.params.email;
             const { bookingStatus } = req.query;
 
@@ -145,7 +143,7 @@ async function run() {
             res.send(result)
         })
 
-        // single parcel get for update parcel default value in update page
+        // single parcel get for update parcel default value in update page (updated parcelData by patch)
         app.get('/parcels/update/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
@@ -153,7 +151,7 @@ async function run() {
             res.send(result)
         })
 
-        // updated parcelData by patch
+        // updated parcelData by patch (single parcel get for update parcel default value in update page)
         app.patch('/parcels/update/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
@@ -179,7 +177,7 @@ async function run() {
 
 
         // post a parcel
-        app.post('/parcels', async (req, res) => {
+        app.post('/parcels', verifyToken, async (req, res) => {
             const parcel = req.body;
             const parcelInfo = {
                 ...parcel,
@@ -191,7 +189,43 @@ async function run() {
             res.send(result)
         })
 
-        // patch a parcel
+        // ------------------------------------ADMIN RELATED API's----------------------------------
+
+        // all parcels
+        app.get('/parcels', verifyToken, verifyAdmin, async (req, res) => {
+            const result = await parcelCollection.find().toArray()
+            res.send(result)
+        })
+
+
+        // all users
+        app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
+            const users = await userCollection.find().toArray()
+
+            let result = [];
+            for (let user of users) {
+                const emailQuery = { email: user?.email }
+                const bookedByOneEmail = await parcelCollection.find(emailQuery).toArray();
+                const parcelBookedCount = bookedByOneEmail.length
+                result.push({ ...user, parcelBookedCount })
+            }
+            res.send(result);
+        })
+
+        // user role change (update) by admin (admin)
+        app.patch('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const { newRole } = req.body
+            const query = { _id: new ObjectId(id) }
+            const updated = {
+                $set: {
+                    role: newRole
+                }
+            }
+            const result = await userCollection.updateOne(query, updated)
+            res.send(result)
+        })
+
 
 
 
