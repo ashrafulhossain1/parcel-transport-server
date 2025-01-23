@@ -27,7 +27,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server
-        await client.connect();
+        // await client.connect();
 
         const userCollection = client.db('shipEaseDb').collection('users');
         const parcelCollection = client.db('shipEaseDb').collection('parcels');
@@ -412,7 +412,6 @@ async function run() {
                 const parcelBookedCount = bookedByOneEmail.length
                 result.push({ ...user, parcelBookedCount, parcelCostSum })
             }
-
             res.send(result);
         })
 
@@ -567,7 +566,7 @@ async function run() {
 
 
 
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
