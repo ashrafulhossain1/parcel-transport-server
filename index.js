@@ -177,7 +177,7 @@ async function run() {
         })
 
         // single parcel get for update parcel default value in update page (updated parcelData by patch)
-        app.get('/parcels/update/:id', verifyToken, verifyUser, async (req, res) => {
+        app.get('/parcels/update/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
             const result = await parcelCollection.findOne(query)
@@ -305,9 +305,8 @@ async function run() {
 
         // all parcels(all parcel page)
         app.get('/parcels', verifyToken, verifyAdmin, async (req, res) => {
-            const fromDate = req.query.fromDate;
-            const toDate = req.query.toDate;
-
+            // const fromDate = req.query.fromDate;
+            // const toDate = req.query.toDate;
             const result = await parcelCollection.find().toArray()
             res.send(result)
         })
@@ -397,16 +396,15 @@ async function run() {
 
             const page = parseInt(req.query.page)
             const size = parseInt(req.query.size)
+            const email = req.decoded.email
+            const ownerOfAdmin = { email: { $ne: email } }
 
-            // console.log(page, size)
-
-            const users = await userCollection.find().skip(page * size).limit(size).toArray()
+            const users = await userCollection.find(ownerOfAdmin).skip(page * size).limit(size).toArray()
 
             let result = [];
             for (let user of users) {
                 const emailQuery = { email: user?.email }
                 const bookedByOneEmail = await parcelCollection.find(emailQuery).toArray();
-
                 const parcelCostSum = bookedByOneEmail.reduce((sum, item) => sum + (item.price || 0), 0);
 
                 const parcelBookedCount = bookedByOneEmail.length
