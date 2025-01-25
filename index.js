@@ -341,7 +341,7 @@ async function run() {
 
 
         // for all delivery man => name, phoneNo, deliveryCount, average review
-        app.get('/deliveryPage', async (req, res) => {
+        app.get('/deliveryPage', verifyToken, verifyAdmin, async (req, res) => {
             const query = { role: "DeliveryMen" }
             const delivers = await userCollection.find(query).toArray()
             let result = [];
@@ -381,7 +381,7 @@ async function run() {
         app.get('/assignDeliveryMan', verifyToken, verifyAdmin, async (req, res) => {
             const query = { role: "DeliveryMen" }
             const result = await userCollection.find(query).toArray()
-            console.log(result)
+            // console.log(result)
             res.send(result);
         })
 
