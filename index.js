@@ -84,7 +84,7 @@ async function run() {
             const query = { email }
             const user = await userCollection.findOne(query)
             if (user?.role !== 'DeliveryMen') {
-                return res.status(403).send({ message: 'Forbidden access! User can only see this' })
+                return res.status(403).send({ message: 'Forbidden access! deliverymen can only see this' })
             }
             next()
         }
@@ -119,9 +119,9 @@ async function run() {
                 $set: profileData
             }
             const result = await userCollection.updateOne(query, updateDoc)
-            const parcelResult = await parcelCollection.updateMany(query, updateDoc, options)
-            const reviewsResult = await reviewsCollection.updateMany(query, updateDoc, options)
-            res.send({ result, parcelResult, reviewsResult })
+            // const parcelResult = await parcelCollection.updateMany(query, updateDoc)
+            // const reviewsResult = await reviewsCollection.updateMany(query, updateDoc)
+            res.send({ result})
         })
 
 
