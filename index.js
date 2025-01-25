@@ -299,7 +299,7 @@ async function run() {
 
 
 
-        // $gte:ISODate("2021-01-01"),$lt:ISODate("2020-05-01"}
+
 
         // ------------------------------------ADMIN RELATED API's----------------------------------
 
@@ -310,6 +310,25 @@ async function run() {
             const result = await parcelCollection.find().toArray()
             res.send(result)
         })
+
+
+        app.get('/filter', async (req, res) => {
+            const { fromDate, toDate } = req.query;
+            let query = {};
+
+            // If both dates are provided, filter by date range
+            if (fromDate && toDate) {
+                query = { requestedDeliveryDate: { $gte: fromDate, $lte: toDate } };
+            }
+
+            try {
+                const result = await parcelCollection.find(query).toArray();
+                res.send(result);
+            } catch (error) {
+                console.error('Error filtering data:', error);
+                res.status(500).send({ message: 'Internal server error' });
+            }
+        });
 
 
 
