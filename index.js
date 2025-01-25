@@ -298,15 +298,12 @@ async function run() {
 
 
 
-
-
-
         // ------------------------------------ADMIN RELATED API's----------------------------------
 
         // all parcels(all parcel page)
 
 
-        app.get('/filter', verifyToken, verifyAdmin, async (req, res) => {
+        app.get('/parcels', verifyToken, verifyAdmin, async (req, res) => {
             const { fromDate, toDate } = req.query;
             let query = {};
 
