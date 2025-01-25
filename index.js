@@ -341,7 +341,7 @@ async function run() {
 
 
         // for all delivery man => name, phoneNo, deliveryCount, average review
-        app.get('/users/deliveryPage', verifyToken, verifyAdmin, async (req, res) => {
+        app.get('/deliveryPage', async (req, res) => {
             const query = { role: "DeliveryMen" }
             const delivers = await userCollection.find(query).toArray()
             let result = [];
@@ -378,9 +378,10 @@ async function run() {
 
 
         // for assign
-        app.get('/users/deliveryMan', async (req, res) => {
+        app.get('/assignDeliveryMan', verifyToken, verifyAdmin, async (req, res) => {
             const query = { role: "DeliveryMen" }
             const result = await userCollection.find(query).toArray()
+            console.log(result)
             res.send(result);
         })
 
@@ -423,7 +424,7 @@ async function run() {
             res.send(result);
         })
 
-
+        // Universal apis ----------------------------------------------------------------------
         // users count
         app.get('/userCount', async (req, res) => {
             const userCount = await userCollection.estimatedDocumentCount()
@@ -439,7 +440,7 @@ async function run() {
         })
 
         // user role change (update) by admin (admin)( all users page)
-        app.patch('/users/:id', async (req, res) => {
+        app.patch('/users/:id', verifyToken, async (req, res) => {
             const id = req.params.id;
             const { newRole } = req.body
             const query = { _id: new ObjectId(id) }
